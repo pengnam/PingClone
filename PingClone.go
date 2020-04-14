@@ -129,14 +129,10 @@ func main() {
 		}
 	} else {
 		//TODO: Handle helper
-		fmt.Println("ERROR")
+		usageAndExit()
 	}
 }
-func usageAndExit(msg string) {
-	if msg != "" {
-		fmt.Fprintf(os.Stderr, msg)
-		fmt.Fprintf(os.Stderr, "\n\n")
-	}
+func usageAndExit() {
 	flag.Usage()
 	fmt.Fprintf(os.Stderr, "\n")
 	os.Exit(1)
