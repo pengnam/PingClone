@@ -1,6 +1,6 @@
 # PingClone
 
-
+![alt text](sample.png)
 
 
 Note: Was not able to do ipv6 because home router does not allow me to configure ipv6.
