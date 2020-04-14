@@ -17,9 +17,10 @@ var (
 
 
 const (
-	ProtocolICMP = 1
-	ListenAddr = "0.0.0.0"
-	Timeout = 10 * time.Second
+	ProtocolICMPV4 = 1
+	ProtocolICMPV6 = 58
+	ListenAddr     = "0.0.0.0"
+	Timeout        = 10 * time.Second
 )
 
 
@@ -83,7 +84,7 @@ func readMessage(c *icmp.PacketConn, dst *net.IPAddr, n int, start time.Time) (n
 	}
 	duration := time.Since(start)
 
-	rm, err := icmp.ParseMessage(ProtocolICMP, reply[:n])
+	rm, err := icmp.ParseMessage(ProtocolICMPV4, reply[:n])
 	if err != nil {
 		return nil, 0, nil, dst, 0, err
 	}
