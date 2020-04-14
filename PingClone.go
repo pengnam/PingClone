@@ -92,7 +92,14 @@ func main() {
 		}
 		log.Printf("Ping %s (%s): %s\n", addr, dst, dur)
 	}
-	p("127.0.0.1")
+	flag.Parse()
+	if hostname := flag.Arg(0); hostname != "" {
+		fmt.Println(hostname)
+		p(hostname)
+	} else {
+		//TODO: Handle helper
+		fmt.Println("ERROR")
+	}
 
 	
 }
