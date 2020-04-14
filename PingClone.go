@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	m           = flag.String("m", "GET", "")
+	TTL= flag.Int("m", 64, "ttl")
 )
 
 
@@ -25,22 +25,20 @@ const (
 )
 
 
-
 //TODO: Handle nil
 //TODO: Handle panics
-
+//TODO: In the real world, I would check the sequence number and dest to verify it
 
 func Ping(addr string) (*net.IPAddr, time.Duration, error, bool) {
 	c, err := icmp.ListenPacket("ip4:icmp", ListenAddr)
+
 	if err != nil {
 		return nil, 0, err, false
 	}
 	defer c.Close()
 
-	// Resolve any DNS (if used) and get the real IP of the target
 	dst := resolveIPAddress(addr)
 
-	// Make a new ICMP message
 	message := icmp.Message{
 		Type: ipv4.ICMPTypeEcho, Code: 0,
 		Body: &icmp.Echo{
@@ -54,7 +52,9 @@ func Ping(addr string) (*net.IPAddr, time.Duration, error, bool) {
 	}
 
 	start := time.Now()
-	n, err := c.WriteTo(bytes, dst)
+	pc := c.IPv4PacketConn()
+	pc.SetTTL(*TTL)
+	n, err := pc.WriteTo(bytes, nil, dst)
 	if err != nil {
 		return dst, 0, err, false
 	} else if n != len(bytes) {
@@ -68,6 +68,8 @@ func Ping(addr string) (*net.IPAddr, time.Duration, error, bool) {
 	switch readMessage.Type {
 	case ipv4.ICMPTypeEchoReply:
 		return dst, duration, nil, loss
+	case ipv4.ICMPTypeTimeExceeded:
+		return dst, duration, fmt.Errorf("Time exceeded"), loss
 	default:
 		return dst, 0, fmt.Errorf("got %+v from %v; want echo reply", readMessage, peer), loss
 	}

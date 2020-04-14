@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="96bfab12-13b7-4228-97fb-5f38a8573957" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PingClone.go" beforeDir="false" afterPath="$PROJECT_DIR$/PingClone.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
