@@ -19,6 +19,7 @@ var (
 const (
 	ProtocolICMP = 1
 	ListenAddr = "0.0.0.0"
+	Timeout = 10 * time.Second
 )
 
 
@@ -58,27 +59,35 @@ func Ping(addr string) (*net.IPAddr, time.Duration, error) {
 		return dst, 0, fmt.Errorf("got %v; want %v", n, len(bytes))
 	}
 
+	peer, duration, readMessage, ipAddr, t, err2 := readMessage( c, dst, n, start)
+	if err2 != nil {
+		return ipAddr, t, err2
+	}
+	switch readMessage.Type {
+	case ipv4.ICMPTypeEchoReply:
+		return dst, duration, nil
+	default:
+		return dst, 0, fmt.Errorf("got %+v from %v; want echo reply", readMessage, peer)
+	}
+}
+
+func readMessage(c *icmp.PacketConn, dst *net.IPAddr, n int, start time.Time) (net.Addr, time.Duration, *icmp.Message, *net.IPAddr, time.Duration, error) {
 	reply := make([]byte, 1500)
-	err = c.SetReadDeadline(time.Now().Add(10 * time.Second))
+	err := c.SetReadDeadline(time.Now().Add(Timeout))
 	if err != nil {
-		return dst, 0, err
+		return nil, 0, nil, dst, 0, err
 	}
 	n, peer, err := c.ReadFrom(reply)
 	if err != nil {
-		return dst, 0, err
+		return nil, 0, nil, dst, 0, err
 	}
 	duration := time.Since(start)
 
 	rm, err := icmp.ParseMessage(ProtocolICMP, reply[:n])
 	if err != nil {
-		return dst, 0, err
+		return nil, 0, nil, dst, 0, err
 	}
-	switch rm.Type {
-	case ipv4.ICMPTypeEchoReply:
-		return dst, duration, nil
-	default:
-		return dst, 0, fmt.Errorf("got %+v from %v; want echo reply", rm, peer)
-	}
+	return peer, duration, rm, nil, 0, nil
 }
 
 func resolveIPAddress(addr string) *net.IPAddr {
