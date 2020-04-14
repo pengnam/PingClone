@@ -18,11 +18,14 @@ var (
 
 const (
 	ProtocolICMP = 1
+	ListenAddr = "0.0.0.0"
 )
 
 
-// Default to listen on all IPv4 interfaces
-var ListenAddr = "0.0.0.0"
+
+//TODO: Handle nil
+//TODO: Handle panics
+
 
 func Ping(addr string) (*net.IPAddr, time.Duration, error) {
 	c, err := icmp.ListenPacket("ip4:icmp", ListenAddr)
@@ -32,11 +35,7 @@ func Ping(addr string) (*net.IPAddr, time.Duration, error) {
 	defer c.Close()
 
 	// Resolve any DNS (if used) and get the real IP of the target
-	dst, err := net.ResolveIPAddr("ip4", addr)
-	if err != nil {
-		panic(err)
-		return nil, 0, err
-	}
+	dst := resolveIPAddress(addr)
 
 	// Make a new ICMP message
 	message := icmp.Message{
@@ -80,6 +79,11 @@ func Ping(addr string) (*net.IPAddr, time.Duration, error) {
 	default:
 		return dst, 0, fmt.Errorf("got %+v from %v; want echo reply", rm, peer)
 	}
+}
+
+func resolveIPAddress(addr string) *net.IPAddr {
+	dst, _ := net.ResolveIPAddr("ip4", addr)
+	return dst
 }
 
 
