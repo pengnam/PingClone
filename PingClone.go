@@ -16,6 +16,11 @@ var (
 )
 
 
+var usage = `Usage: PingClone [options...] <hostname/ip>
+Options:
+  -m  TTL for packet. Default is 64.
+`
+
 const (
 	ProtocolICMPV4 = 1
 	ProtocolICMPV6 = 58
@@ -46,24 +51,22 @@ func Ping(addr string) (*net.IPAddr, time.Duration, error, bool) {
 			Data: []byte(""),
 		},
 	}
+	start := time.Now()
 	bytes, err := message.Marshal(nil)
 	if err != nil {
 		return dst, 0, err, false
 	}
 
-	start := time.Now()
 	pc := c.IPv4PacketConn()
 	pc.SetTTL(*TTL)
 	n, err := pc.WriteTo(bytes, nil, dst)
 	if err != nil {
 		return dst, 0, err, false
-	} else if n != len(bytes) {
-		return dst, 0, fmt.Errorf("got %v; want %v", n, len(bytes)), false
 	}
 
-	peer, duration, readMessage, ipAddr, t, err2, loss := readMessage( c, dst, n, start)
-	if err2 != nil {
-		return ipAddr, t, err2, loss
+	peer, duration, readMessage, ipAddr, t, err, loss := readMessage( c, dst, n, start)
+	if err != nil {
+		return ipAddr, t, err, loss
 	}
 	switch readMessage.Type {
 	case ipv4.ICMPTypeEchoReply:
@@ -128,6 +131,14 @@ func main() {
 		//TODO: Handle helper
 		fmt.Println("ERROR")
 	}
-
-	
 }
+func usageAndExit(msg string) {
+	if msg != "" {
+		fmt.Fprintf(os.Stderr, msg)
+		fmt.Fprintf(os.Stderr, "\n\n")
+	}
+	flag.Usage()
+	fmt.Fprintf(os.Stderr, "\n")
+	os.Exit(1)
+}
+
