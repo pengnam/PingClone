@@ -112,13 +112,15 @@ func main() {
 
 	if hostname := flag.Arg(0); hostname != "" {
 		packets_transmitted := 0
-		packets_lost := 0
+		packets_loss := 0
 		for {
 			packets_transmitted += 1
 			loss := wrappedPing(hostname)
 			if loss {
-				packets_lost += 1
+				packets_loss += 1
 			}
+			log.Printf("%d packets transmitted, %d packets received, %.2f%% packet loss", packets_transmitted, packets_transmitted - packets_loss, (100.0 * float64(packets_loss)/float64(packets_transmitted)))
+			time.Sleep(Interval)
 		}
 	} else {
 		//TODO: Handle helper
